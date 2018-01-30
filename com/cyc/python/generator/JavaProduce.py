@@ -24,8 +24,6 @@ def getConnection(dbdialect):
 
 connection = getConnection(dbdialect)
 
-#connection = pymysql.connect(host = "127.0.0.1", port = 3306, user = "root", password = "1234", db = "db_attendance_system", charset = "utf8mb4", cursorclass = pymysql.cursors.DictCursor)
-
 # 根据数据库自动生成Java entity，controller，service，dao
 
 def entity(bean, tableSchema, tableName):

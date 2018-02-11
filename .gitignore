@@ -3,3 +3,4 @@ com/cyc/python/generator/controller/
 com/cyc/python/generator/dao/
 com/cyc/python/generator/entity/
 com/cyc/python/generator/service/
+venv/

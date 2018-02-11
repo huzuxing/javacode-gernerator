@@ -24,12 +24,18 @@ def getConnection(dbdialect):
 
 connection = getConnection(dbdialect)
 
+#获取当前工作目录，并处理成Java包路径格式,目前只是支持maven格式，将Java后面的路径作为包路径
+workdir = os.getcwd().strip().split("\\java\\")
+package = ""
+if len(workdir) >= 2:
+    package = workdir[1].replace("\\", ".")
+
 # 根据数据库自动生成Java entity，controller，service，dao
 
 def entity(bean, tableSchema, tableName):
     print(bean + " entity producing begin ...")
     with open(bean + ".java", "w", encoding="UTF-8") as file:
-        file.write("package com.digisky.entity;")
+        file.write("package " + package + ".entity;")
         file.write("\n\n\n")
         file.write("/**\n * Auto Created through python on " + str(datetime.datetime.now().date()) + ", author:" + getpass.getuser() + "\n **/\n\n")
         file.write("public class " + bean + "{\n")
@@ -110,7 +116,20 @@ def entity(bean, tableSchema, tableName):
 def controller(bean):
     print(bean + " controller producing finished ...")
     with open(bean + "Controller.java", "w", encoding="UTF-8") as file:
-        file.write("package com.digisky.controller;")
+        file.write("package " + package + ".controller;")
+        file.write("\n\n\n")
+        # 生成import
+        file.write("import " + package + ".common.Constant;\n")
+        file.write("import " + package + ".entity." + bean + ";\n")
+        file.write("import " + package + ".service." + bean + "Service;\n")
+        file.write("import org.springframework.web.bind.annotation.RequestMapping;\n")
+        file.write("import org.springframework.web.bind.annotation.RequestMethod;\n")
+        file.write("import org.springframework.web.bind.annotation.RestController;\n")
+        file.write("import org.springframework.web.context.request.async.WebAsyncTask;\n")
+        file.write("\n\n\n")
+        file.write("import javax.servlet.http.HttpServletRequest;\n")
+        file.write("import javax.annotation.Resource;\n")
+        file.write("import java.util.concurrent.Callable;\n")
         file.write("\n\n\n")
         file.write("/**\n * Auto Created through python on " + str(datetime.datetime.now().date()) + ", author:" + getpass.getuser() + " \n **/\n\n")
         file.write("@RestController\n")
@@ -204,6 +223,10 @@ def controller(bean):
         file.write("\t\treturn new WebAsyncTask<String>(Constant.REQUEST_TIMEOUT_MILLISECOND, callable);")
         file.write("\n\t}")
 
+        # 导入依赖
+        file.write("\n")
+        file.write("\t@Resource\n")
+        file.write("\tprivate " + bean + "Service " + bean[0].lower() + bean[1:] + "Service;\n")
         file.write("\n}")
     # 写完文件，将所有controller移到controller文件夹下
     shutil.move(bean + "Controller.java", "controller/")
@@ -212,11 +235,12 @@ def controller(bean):
 # 生成service，包括接口已经对应的实现
 
 def service(bean):
-    print(bean + " service producing finished ...")
+    print(bean + " service producing begin ...")
     # service接口
     with open(bean + "Service.java", "w", encoding="UTF-8") as file:
-        file.write("package com.digisky.service;")
+        file.write("package " + package + ".service;")
         file.write("\n\n\n")
+        file.write("import " + package + ".entity." + bean + ";\n")
         file.write("import java.util.List;")
         file.write("\n\n\n")
         file.write("/**\n * Auto Created through python on " + str(datetime.datetime.now().date()) + ", author:" + getpass.getuser() + " \n **/\n\n")
@@ -228,7 +252,7 @@ def service(bean):
         file.write("\n")
         # 生成findPage方法
         file.write("\n")
-        file.write("\tList<" + bean + "> findPage(" + bean + " bean, Ineger page, Integer row);")
+        file.write("\tList<" + bean + "> findPage(" + bean + " bean, Integer page, Integer row);")
         file.write("\n")
         # 生成add方法
         file.write("\n")
@@ -267,8 +291,13 @@ def service(bean):
 
     # service 实现
     with open(bean + "ServiceImpl.java", "w", encoding="UTF-8") as file:
-        file.write("package com.digisky.service.impl;")
+        file.write("package " + package + ".service.impl;")
         file.write("\n\n\n")
+        file.write("import " + package + ".entity." + bean + ";\n")
+        file.write("import " + package + ".service." + bean + "Service;\n")
+        file.write("import " + package + ".dao." + bean + "Dao;\n")
+        file.write("import org.springframework.stereotype.Service;\n")
+        file.write("import javax.annotation.Resource;\n")
         file.write("import java.util.List;")
         file.write("\n\n\n")
         file.write("/**\n * Auto Created through python on " + str(datetime.datetime.now().date()) + ", author:" + getpass.getuser() + " \n **/\n\n")
@@ -356,6 +385,11 @@ def service(bean):
         file.write("\t\treturn false;")
         file.write("\n\t}")
 
+        # 导入依赖
+        file.write("\n")
+        file.write("\t@Resource\n")
+        file.write("\tprivate " + bean +"Dao " + bean[0].lower() + bean[1:] +"Dao;\n")
+
         file.write("\n}")
     # 写完文件，归档文件
     shutil.move(bean + "ServiceImpl.java", "service/impl/")
@@ -364,11 +398,12 @@ def service(bean):
 # 生成dao
 
 def dao(bean):
-    print(bean + " dao producing finished ...")
+    print(bean + " dao producing begin ...")
     # dao接口
     with open(bean + "Dao.java", "w", encoding="UTF-8") as file:
-        file.write("package com.digisky.dao;")
+        file.write("package " + package + ".dao;")
         file.write("\n\n\n")
+        file.write("import " + package + ".entity." + bean + ";\n")
         file.write("import java.util.List;")
         file.write("\n\n\n")
         file.write("/**\n * Auto Created through python on " + str(datetime.datetime.now().date()) + ", author:" + getpass.getuser() + " \n **/\n\n")
@@ -380,7 +415,7 @@ def dao(bean):
         file.write("\n")
         # 生成findPage方法
         file.write("\n")
-        file.write("\tList<" + bean + "> findPage(" + bean + " bean, Ineger page, Integer row);")
+        file.write("\tList<" + bean + "> findPage(" + bean + " bean, Integer page, Integer row);")
         file.write("\n")
         # 生成add方法
         file.write("\n")
@@ -419,14 +454,17 @@ def dao(bean):
 
     # dao 实现
     with open(bean + "DaoImpl.java", "w", encoding="UTF-8") as file:
-        file.write("package com.digisky.dao.impl;")
+        file.write("package " + package + ".dao.impl;")
         file.write("\n\n\n")
+        file.write("import " + package + ".entity." + bean + ";\n")
+        file.write("import " + package + ".dao." + bean + "Dao;\n")
+        file.write("import org.springframework.stereotype.Repository;\n")
         file.write("import java.util.List;")
         file.write("\n\n\n")
         file.write("/**\n * Auto Created through python on " + str(datetime.datetime.now().date()) + ", author:" + getpass.getuser() + " \n **/\n\n")
         serviceName = bean[0].lower() + bean[1:]
         file.write("@Repository(\"" + serviceName + "Dao\")\n")
-        file.write("public class " + bean + "DaoImpl implements " + bean + "Service {\n")
+        file.write("public class " + bean + "DaoImpl implements " + bean + "Dao {\n")
 
         # 生成findList方法
         file.write("\n")
@@ -449,7 +487,7 @@ def dao(bean):
         file.write("\n")
         file.write("\t/**\n \t * 新增数据接口 \n \t**/\n")
         file.write("\t@Override\n")
-        file.write("\tpublic " + bean + " add(final " + bean + " bean) {\n")
+        file.write("\tpublic " + bean + " save(final " + bean + " bean) {\n")
         file.write("\n")
         file.write("\t\treturn null;")
         file.write("\n\t}")

@@ -58,9 +58,12 @@ def entity(bean, tableSchema, tableName):
             # 将带有下划线的字段变为驼峰式
             attrs = columnName.split("_")
             propertyName = ""
-            for att in attrs:
-                propertyName = att[0].upper() + att[1:]
-                propertyName = propertyName.strip()[0].lower() + att[1:]
+            for i, att in enumerate(attrs):
+                if i == 0:
+                    propertyName += att[0] + att[1:]
+                else:
+                    propertyName += att[0].upper() + att[1:]
+            propertyName = propertyName
 
             # 处理字段类型
             columnType = columnType.split("(")[0]
@@ -285,6 +288,10 @@ def service(bean):
         file.write("\tboolean batchDelete(List<" + bean + "> bean);")
         file.write("\n")
 
+        # 生成count方法
+        file.write("\n")
+        file.write("\tInteger count(" + bean + " bean);")
+        file.write("\n")
         file.write("\n}")
     # 写完文件，将所有service 接口移到service根目录文件夹下
     shutil.move(bean + "Service.java", "service/")
@@ -330,6 +337,7 @@ def service(bean):
         file.write("\n")
         file.write("\t\treturn null;")
         file.write("\n\t}")
+
 
         # 生成update方法
         file.write("\n")
@@ -383,6 +391,15 @@ def service(bean):
         file.write("\tpublic boolean batchDelete(List<" + bean + "> bean) {\n")
         file.write("\n")
         file.write("\t\treturn false;")
+        file.write("\n\t}")
+
+        # 生成count方法
+        file.write("\n")
+        file.write("\t/**\n \t * 统计条数 \n \t**/\n")
+        file.write("\t@Override\n")
+        file.write("\tpublic Integer count(" + bean + " bean) {\n")
+        file.write("\n")
+        file.write("\t\treturn 0;")
         file.write("\n\t}")
 
         # 导入依赖
@@ -446,6 +463,11 @@ def dao(bean):
         # 生成批量删除方法
         file.write("\n")
         file.write("\tboolean batchDelete(List<" + bean + "> bean);")
+        file.write("\n")
+
+        # 生成count方法
+        file.write("\n")
+        file.write("\tInteger count(" + bean + " bean);")
         file.write("\n")
 
         file.write("\n}")
@@ -544,6 +566,15 @@ def dao(bean):
         file.write("\tpublic boolean batchDelete(List<" + bean + "> bean) {\n")
         file.write("\n")
         file.write("\t\treturn false;")
+        file.write("\n\t}")
+
+        # 生成count方法
+        file.write("\n")
+        file.write("\t/**\n \t * 统计条数 \n \t**/\n")
+        file.write("\t@Override\n")
+        file.write("\tpublic Integer count(" + bean + " bean) {\n")
+        file.write("\n")
+        file.write("\t\treturn 0;")
         file.write("\n\t}")
 
         file.write("\n}")
